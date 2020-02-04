@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>HospitalRun</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+
+    
+<meta name="hospitalrun/config/environment" content="%7B%22modulePrefix%22%3A%22hospitalrun%22%2C%22environment%22%3A%22development%22%2C%22rootURL%22%3Anull%2C%22locationType%22%3A%22hash%22%2C%22EmberENV%22%3A%7B%22FEATURES%22%3A%7B%7D%2C%22EXTEND_PROTOTYPES%22%3A%7B%22Date%22%3Afalse%7D%7D%2C%22APP%22%3A%7B%22name%22%3A%22hospitalrun%22%2C%22version%22%3A%221.0.0-beta+30ccd205%22%7D%2C%22contentSecurityPolicy%22%3A%7B%22connect-src%22%3A%22%27self%27%22%2C%22default-src%22%3A%22%27self%27%22%2C%22frame-src%22%3A%22%27self%27%22%2C%22img-src%22%3A%22%27self%27%20filesystem%3A%20data%3A%20blob%3A%22%2C%22script-src%22%3A%22%27self%27%20%27unsafe-inline%27%20%27unsafe-eval%27%22%2C%22style-src%22%3A%22%27self%27%20%27unsafe-inline%27%22%2C%22font-src%22%3A%5B%22%27self%27%22%5D%2C%22media-src%22%3A%5B%22%27self%27%22%5D%7D%2C%22i18n%22%3A%7B%22defaultLocale%22%3A%22en%22%7D%2C%22manifest%22%3A%7B%22enabled%22%3Atrue%2C%22appcacheFile%22%3A%22/manifest.appcache%22%2C%22excludePaths%22%3A%5B%22index.html%22%2C%22tests/index.html%22%2C%22robots.txt%22%2C%22crossdomain.xml%22%2C%22testem.js%22%5D%2C%22showCreateDate%22%3Atrue%7D%2C%22serviceWorker%22%3A%7B%22enabled%22%3Afalse%2C%22includeRegistration%22%3Afalse%7D%2C%22emberFullCalendar%22%3A%7B%22includeScheduler%22%3Atrue%2C%22schedulerLicenseKey%22%3A%22GPL-My-Project-Is-Open-Source%22%7D%2C%22contentSecurityPolicyHeader%22%3A%22Content-Security-Policy-Report-Only%22%2C%22exportApplicationGlobal%22%3Atrue%7D" />
+<script>
+// ember-electron
+((win) => {
+  win.ELECTRON = true;
+
+  // On linux the renderer process doesn't inherit the main process'
+  // environment, so we need to fall back to using the remote module.
+  const serveIndex = process.env.ELECTRON_PROTOCOL_SERVE_INDEX || require('electron').remote.process.env.ELECTRON_PROTOCOL_SERVE_INDEX;
+
+  if (serveIndex && window.location.protocol !== 'file:') {
+    // Using electron-protocol-serve to load index.html via a 'serve:' URL
+    // prevents electron's renderer/init.js from setting the module search
+    // paths correctly. So this is basically a copy of that code, but using an
+    // environment variable set by electron-protocol-serve containing the
+    // filesystem path to index.html instead of window.location.
+    const path = require('path');
+    const Module = require('module');
+
+    global.__filename = path.normalize(serveIndex);
+    global.__dirname = path.dirname(serveIndex);
+
+    // Set module's filename so relative require can work as expected.
+    module.filename = global.__filename;
+
+    // Also search for module under the html file.
+    module.paths = module.paths.concat(Module._nodeModulePaths(global.__dirname));
+  }
+
+  // Store electrons node environment injections for later usage
+  win.moduleNode = win.module;
+  win.processNode = win.process;
+  win.requireNode = win.require;
+
+  // Delete the originals so Ember is not confused
+  delete win.module;
+  delete win.process;
+  delete win.require;
+})(window);
+</script>
+
+    <link rel="stylesheet" href="assets/vendor.css">
+    <link rel="stylesheet" href="assets/hospitalrun.css">
+
+    
+  </head>
+  <body>
+    <div class="loading-notice apploading" id="apploading" role="alert">
+        <div class="wrapper">
+            <div class="spinner">
+                <div class="rect1"></div>
+                <div class="rect2"></div>
+                <div class="rect3"></div>
+                <div class="rect4"></div>
+                <div class="rect5"></div>
+            </div>
+            <p class="loading-text">MEMUAT NAIK</p>
+        </div>
+    </div>
+    
+
+    <script src="assets/vendor.js"></script>
+    <script src="assets/hospitalrun.js"></script>
+
+    <script>
+// ember-electron
+((win) => {
+  const { requireNode, require: requireAMD } = win;
+
+  // Redefine a global `require` function that can satisfy both Node and AMD module systems.
+  if (requireAMD) {
+    win.require = (...args) => {
+      try {
+        return requireAMD(...args);
+      } catch(error) {
+        if (error.toString().includes('Error: Could not find module')) {
+          return requireNode(...args);
+        }
+
+        console.error(error);
+      }
+    };
+  } else {
+    win.require = requireNode;
+  }
+
+  // Restore others
+  win.process = win.processNode;
+  win.module = win.moduleNode;
+})(window);
+</script>
+  </body>
+</html>
